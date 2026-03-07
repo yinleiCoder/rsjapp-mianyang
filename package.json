@@ -1,0 +1,15 @@
+{
+  "name": "rsjappmianyang",
+  "version": "1.0.0",
+  "description": "一款专为绵阳市各教师及专业技术工作人员减轻负担的刷课软件。",
+  "main": "course.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "crypto-js": "^4.2.0"
+  }
+}
