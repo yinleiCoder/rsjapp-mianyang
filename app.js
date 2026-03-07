@@ -764,15 +764,19 @@ window = globalThis;
   RSAUtils.setMaxDigits(130);
 })(window);
 
-// 加密登录信息
-const encryptLoginPayload = (account, password, verifyCode) => {
-  let parameter = {
-    pspUserAccount: account,
-    pspUserPwd: password,
-    verCode: verifyCode,
-    loginType: "0",
-    pspUserType: "UT01",
-  };
+function getPublicKey() {
+  return RSAUtils.getKeyPair(
+    "10001",
+    "",
+    "8b9c5151e6f4caaca0d40dab442169c5f3bfa6426328dce946d61412cfa890d06bd21980cb" +
+      "9828679dbe8c97081e2eeb50c8a2020d1237efcab45e3d1ddd56acff57b76a3afaece4deed" +
+      "9a22b9a2628208771af062b14df3b06e40b47f89a20c4120918446dbe94cb5a7332f50fa81" +
+      "e4065b9b82f35094ddfc87982122f02e83",
+  ); //生成rsa公钥
+}
+
+// 加密请求体数据
+function encryptData(parameter) {
   let param = {};
   for (let key in parameter) {
     if (parameter[key] !== undefined && parameter[key] != null) {
@@ -788,23 +792,17 @@ const encryptLoginPayload = (account, password, verifyCode) => {
       param[key] = CryptoJS.enc.Base64.stringify(decrypt.ciphertext);
     }
   }
-  let rsaKey = RSAUtils.getKeyPair(
-    "10001",
-    "",
-    "8b9c5151e6f4caaca0d40dab442169c5f3bfa6426328dce946d61412cfa890d06bd21980cb" +
-      "9828679dbe8c97081e2eeb50c8a2020d1237efcab45e3d1ddd56acff57b76a3afaece4deed" +
-      "9a22b9a2628208771af062b14df3b06e40b47f89a20c4120918446dbe94cb5a7332f50fa81" +
-      "e4065b9b82f35094ddfc87982122f02e83",
-  ); //生成rsa公钥
+  let rsaKey = getPublicKey();
   param.encodeKey = RSAUtils.encryptedString(
     rsaKey,
     encodeURIComponent("123456ABCDEABCDE"),
   );
   return param;
-};
+}
 
-const dealAes = (encryptedData) => {
-  var decrypt = CryptoJS.AES.decrypt(
+// 解密返回的数据
+function decryptData(encryptedData) {
+  let decrypt = CryptoJS.AES.decrypt(
     encryptedData,
     CryptoJS.enc.Utf8.parse("123456ABCDEABCDE"),
     {
@@ -814,9 +812,22 @@ const dealAes = (encryptedData) => {
   ).toString(CryptoJS.enc.Utf8);
   // var result=decodeURIComponent(decrypt)
   return JSON.parse(decrypt);
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+// 獲取課程列表數據
+const getCourseList = (aac001, pageNum) => {
+  let parameter = {
+    pageNum,
+    size: "5",
+    adz121: "",
+    adz123: "",
+    adf088: "",
+    sort: "5",
+    adz280: "",
+    aac001,
+  };
+  param = encryptData(parameter);
+  return param;
 };
-
-
-
-// console.log(dealAes('g4v1F38ycvEHEPE2pP1SXrth3nAOWz/VcXVQFVMrr5NKEp692mKEvmPCgpeEhjFtiwyNqoRvmAk7llTJm/Hh0baJQvtSTgrVzmk20OKrbqQzeuhXSyZj66/nXbkUwRSZqorQWx1XobcSgMuVMbW5BnOJ4DN9Kl3sihCrIdrqqmDImiqkEMsWuHhrKpHnXsaxMDDaysrmH3OgsvrpBYkZ6YyTqC3F2J8s/AYoWyCX7+bULOi2NsBvAk/ivh3+E4hsSIzCUz31KFk9pZnzJJYFrq8fee3o1s2V2F8RnS8TXagGov8EvPF/uqEU4oU0iyotfL+fYC5nmO3nsdFsqj6ojfef0Eg5O9gSmmOtUTZYxhLPge2Xqc1eriTdlCghklnm+ptLH3kwUjelOASTNAXwk9Al7nWhkr3IQEo3nboKUeaCi4usaAn0MKi08MSiXZtOpRWtkqJph1aKRY462AIYV9dq0Wxo/uo4cFuF0HatVb+wCulLYSAcUYBtGKkiIzlS8cXzwoCYqFBHMbHIXUwuIeJ4KfBB7QhLkZL+RTN8kbNvg6RlpXYZSXbGHjAUYLcuxjBEQxHOcLrnWY3fbm3EkBEzHVff792B1zKPoPIhin7q5Ad1PWsE5Zgg+kmHeqUAmdtv8PXunPYdMRRJ/kcAz18VErz+zio0yzk2DdrmvYaWQFoaEpc3rSLrI09v0W95S/gk9A9ZM+n6vTCoI6UUzCV4jN2NoRGuRDVxqzecWSWwB7Oi0FN9nzxqhOemh1NbUard/OLJ6B0M2704AFL1oNaT06uDff48Z09Bq7b9S9o3+9GU5sCvtTA8Xe0OAWA7GGca4CZKt5M1LjYMu3mslyUAaT4Q/354oXHIHTqt21/hSVBtF4EYz3MQUVuSEj9ulYWXaEWt8dvysNAETJafLVGjBjPDTrySn3q3u9QUlr5mvRDokBwCD7IFpu3a/dGX'))
-console.log(dealAes("g4v1F38ycvEHEPE2pP1SXr+ocn4YJlcWEnOBI+fXkxAN0s3+lVrCE8++C8k547DTMT1YcjBxQ6WS4LvAaMOjXOf9g1R0XEmMiAhkc8o7L/YFdaS7EawehFxqNvwGqLrTc1KoRtMryR+KotfZazhydO8D+Uez+6TWZnV+k3nBGIN1weL+UAqorgT8W8EwgxBQ3USjpB5TiOp/AYRUR8pQZ7QPrSjRJbgZOQpuccAlsY9fFsBcnV49mtTNuSe4PjkthfxO9yWtAYuPut4uRvQxM5l9d5vw1e/gqDhWhEBotYy9VcgSgfJJlIqCksx7jgsTVMMZG7r5fX6CDlJBt3PDNuIy/zh0dUadAnrPCro6NM/+mlp7I4TW7wy6bnk8y99mAk2486LZNAGs+G9XgHDNnx7UQ/1I2sMQcqmBokOoQ9Lrli3EHaN171Dh2KdE3U2XhAz0Fqg9SLaAaM383omCaTyNjxCcH9ZwExAb6nsibZzljg7BZgwxXJpR5BivneaQL1re3/SRwKtWuWSrXZ9ekr3hFGwfg8X5fxsJoVLfnUXMRBuGHXw4MNzdZJPwz851g2DDlh9jBy7hKd9NU12qgEl2Wy/7Ti20gANf00D7hiHUcg2OGFG9KghaSe6PJQLt4fnNHjpTjiv9qOXewgPlzObWq7OlJvii4EcqGw51OjnY5tyPcSDNKFypJu7ATfV33oIuS8z9VswR8xgfBSjDwBd2uQtls8olZqlMzwIlS8Bqnp6hRKVV0+dJBifsEzvIIuGgbYmztuZXzKinFLc/TbbG+S6H1EC1AiniZKkQDF1vu8OYh7kpmotGp1zJLVGpp66JJeLsMxIpx83jr2cfiqPZ2CyYqf3NNVUB/jyMYqwo+ZzYzJ284ZO3FNounKV2QNCqBn3W3oQN28jAz/qQORStKj4FV40MbooWLjdt+FfKuLrIKkk3SOMZhSv9NSgzXLzzVKMtNFaKL1O1WVMpj71HQjB8cFp+QzOfKYCjWuA="))

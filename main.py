@@ -3,6 +3,40 @@ import threading
 from course import RsjApp
 import customtkinter
 
+class MyRadiobuttonFrame(customtkinter.CTkFrame):
+    def __init__(self, master, title, values):
+        super().__init__(master)
+        self.grid_columnconfigure(0, weight=1)
+        self.values = values
+        self.title = title
+        self.radiobuttons = []
+        self.variable = customtkinter.StringVar(value="")
+
+        self.title = customtkinter.CTkLabel(self, text=self.title, fg_color="gray30", corner_radius=6)
+        self.title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="ew")
+
+        for i, value in enumerate(self.values):
+            radiobutton = customtkinter.CTkRadioButton(self, text=value, value=value, variable=self.variable)
+            radiobutton.grid(row=i + 1, column=0, padx=10, pady=(10, 0), sticky="w")
+            self.radiobuttons.append(radiobutton)
+
+    def get(self):
+        return self.variable.get()
+
+    def set(self, value):
+        self.variable.set(value)
+
+# 弹窗----------------------------------------------------------------------
+class ToplevelWindow(customtkinter.CTkToplevel):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.geometry("400*200")
+        
+    def display_content(self, text):
+        self.label = customtkinter.CTkLabel(self, text=text)
+        self.label.pack(padx=20, pady=20)
+
+# 日志面板-------------------------------------------------------------------
 class LogFrame(customtkinter.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
@@ -28,59 +62,7 @@ class LogFrame(customtkinter.CTkFrame):
         self.textbox.insert("end", log, level)
         self.textbox.see("end")
 
-class ToplevelWindow(customtkinter.CTkToplevel):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.geometry("400*200")
-        
-    def display_content(self, text):
-        self.label = customtkinter.CTkLabel(self, text=text)
-        self.label.pack(padx=20, pady=20)
-    
-
-class MyRadiobuttonFrame(customtkinter.CTkFrame):
-    def __init__(self, master, title, values):
-        super().__init__(master)
-        self.grid_columnconfigure(0, weight=1)
-        self.values = values
-        self.title = title
-        self.radiobuttons = []
-        self.variable = customtkinter.StringVar(value="")
-
-        self.title = customtkinter.CTkLabel(self, text=self.title, fg_color="gray30", corner_radius=6)
-        self.title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="ew")
-
-        for i, value in enumerate(self.values):
-            radiobutton = customtkinter.CTkRadioButton(self, text=value, value=value, variable=self.variable)
-            radiobutton.grid(row=i + 1, column=0, padx=10, pady=(10, 0), sticky="w")
-            self.radiobuttons.append(radiobutton)
-
-    def get(self):
-        return self.variable.get()
-
-    def set(self, value):
-        self.variable.set(value)
-
-class CourseFrame(customtkinter.CTkScrollableFrame):
-    def __init__(self, master, title, values):
-        super().__init__(master, label_text=title)
-        self.grid_columnconfigure(0, weight=1)
-        self.values = values
-        self.checkboxes = []
-
-        for i, value in enumerate(self.values):
-            checkbox = customtkinter.CTkCheckBox(self, text=value)
-            checkbox.grid(row=i, column=0, padx=10, pady=(10, 0), sticky="w")
-            self.checkboxes.append(checkbox)
-
-    def get(self):
-        checked_checkboxes = []
-        for checkbox in self.checkboxes:
-            if checkbox.get() == 1:
-                checked_checkboxes.append(checkbox.cget("text"))
-        return checked_checkboxes
-    
-
+# 登录面板----------------------------------------------------------------
 class LoginFrame(customtkinter.CTkFrame):
     def __init__(self, master, app):
         super().__init__(master)
@@ -104,27 +86,47 @@ class LoginFrame(customtkinter.CTkFrame):
     def login(self):
         account = self.account_entry.get()
         password = self.password_entry.get()
-        isLoginSuccess = self.app.login(account, password)
-        if isLoginSuccess:
-            self.master.do_main()
-        else:
+        message = self.app.login(account, password)
+        if message:
             error_login_window = ToplevelWindow(self)
             error_login_window.focus()
             error_login_window.title('登录失败')
-            error_login_window.display_content('账号、密码或自动识别验证码错误，请检查后重试！')
+            error_login_window.display_content(message)
+        else:
+            self.master.do_main()
 
+# 课程面板
+class CourseFrame(customtkinter.CTkScrollableFrame):
+    def __init__(self, master, title, values):
+        super().__init__(master, label_text=title)
+        self.grid_columnconfigure((0, 1), weight=1)
+        self.values = values
+        self.checkboxes = []
 
+        for i, value in enumerate(self.values):
+            checkbox = customtkinter.CTkCheckBox(self, text=value["adz121"])
+            if i % 2:
+                checkbox.grid(row=i, column=i%2, padx=10, pady=(10, 0), sticky="w")
+            else:
+                checkbox.grid(row=i+1, column=i%2, padx=10, pady=(10, 0), sticky="w")
+            self.checkboxes.append(checkbox)
+
+    def get(self):
+        selected_courses = []
+        for checkbox in self.checkboxes:
+            if checkbox.get() == 1:
+                selected_courses.append(checkbox.cget("text"))
+        return selected_courses
+
+# 主屏幕----------------------------------------------------------------
 class MainFrame(customtkinter.CTkFrame):
-    def __init__(self, master):
+    def __init__(self, master, app):
         super().__init__(master)
-        
-        self.running = False 
-
+        self.app = app
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure((0,5), weight=1)
 
-        values = ["计算机网络", "操作系统", "组成原理", "信息技术", "办公应用"]
-        self.course_frame = CourseFrame(self, title="全部课程", values=values)
+        self.course_frame = CourseFrame(self, title="全部课程", values=self.app.obtain_course_data())
         self.course_frame.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
 
         self.button = customtkinter.CTkButton(self, text="一键刷课", command=self.button_callback)
@@ -134,10 +136,12 @@ class MainFrame(customtkinter.CTkFrame):
 
         self.log_frame = LogFrame(self)
         self.log_frame.grid(row=5, column=0, padx=10, pady=10, sticky="ew")
+        self.log_frame.write(f'欢迎来自{app.user_info["adz503_desc"]}/{app.user_info["adz501"]}/{app.user_info["adz50b_desc"]}/{app.user_info["aac003"]}老师！')
     
     def button_callback(self):
-        pass
+        print(self.course_frame.get())
 
+# 控制面板-------------------------------------------------------------
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
@@ -153,10 +157,9 @@ class App(customtkinter.CTk):
         self.login_frame = LoginFrame(self, self.app)
         self.login_frame.grid(row=0, column=0, padx=0, pady=0, sticky="ew")
         
-        
     def do_main(self):
         self.login_frame.destroy()
-        self.main_frame = MainFrame(self)
+        self.main_frame = MainFrame(self, self.app)
         self.main_frame.grid(row=0, column=0, padx=0, pady=0, sticky="ew")
 
 
