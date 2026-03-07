@@ -9,6 +9,7 @@ class RsjApp:
     def __init__(self):
         self.headers = {}
         self.cookies = {}
+        self.all_courses = []
     
     def verify_code(self) -> str:
         self.headers = {
@@ -117,11 +118,11 @@ class RsjApp:
     def obtain_course_data(self):
         course_data = self.obtain_course_list()
         page_total = math.ceil(int(course_data["total"])/int(course_data["size"]))
-        all_courses = []
+        self.all_courses = []
         for page in range(page_total):
             course_data = self.obtain_course_list(str(page + 1))
-            all_courses.extend(course_data["list"])
-        return all_courses
+            self.all_courses.extend(course_data["list"])
+        return self.all_courses
 
     def obtain_course_list(self, page="1") -> dict:
         self.headers = {
@@ -160,8 +161,53 @@ class RsjApp:
         decrypted_data = self.decrypt_data(response.text.strip('"'))
         return decrypted_data["resultData"]["data"]["data"]
 
+    def find_course_by_name(self, course_name):
+        for item in self.all_courses:
+            if item.get('adz121') == course_name:
+                return item
+        return None
+
+    def select_course(self, course_name='') -> str:
+        current_course = self.find_course_by_name(course_name)
+        if current_course is None or current_course["adz175"] == 1:
+            return "已选课"
+        
+        self.headers = {
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "Accept-Language": "zh-CN,zh;q=0.9",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "Origin": "https://rsjapp.mianyang.cn",
+            "Pragma": "no-cache",
+            "Referer": "https://rsjapp.mianyang.cn/jxjy/pc/wdkc_1646108788000/index.jhtml",
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+            "X-Requested-With": "XMLHttpRequest",
+            "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+        }
+        url = "https://rsjapp.mianyang.cn/jxjy/pc/lcService/getData/myd002.do"
+        jscode = open('app.js', 'r', encoding='utf-8').read()
+        payload = execjs.compile(jscode).call('selectCourse', current_course["adz280"], self.user_id)
+        data = {
+            "adz280": payload["adz280"],
+            "aac001": payload["aac001"],
+            "encodeKey": payload["encodeKey"]
+        }
+        response = requests.post(url, headers=self.headers, cookies=self.cookies, data=data)
+        decrypted_data = self.decrypt_data(response.text.strip('"'))
+        if decrypted_data["resultData"]["data"]["code"] == "1" and decrypted_data["resultData"]["data"]["message"] == "成功":
+            return "选课成功"
+        else:
+            return "选课失败"
+    
+
 if __name__ == "__main__":
     app = RsjApp()
-    app.login("510722199805052850", "Tangtao1998@")
+    app.login("510722199805052850", "Yl13795950539@")
     all_courses_data = app.obtain_course_data()
-    print(all_courses_data)
+    app.select_course('2011年：低碳经济与可持续发展')

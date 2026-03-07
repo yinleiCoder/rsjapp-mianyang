@@ -831,3 +831,13 @@ const getCourseList = (aac001, pageNum) => {
   param = encryptData(parameter);
   return param;
 };
+
+// 选课
+const selectCourse = (adz280, aac001) => {
+  let parameter = {
+    adz280,
+    aac001,
+  };
+  param = encryptData(parameter);
+  return param;
+};
