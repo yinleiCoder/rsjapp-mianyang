@@ -11,3 +11,13 @@ wheels/
 
 # node
 node_modules/
+
+# 忽略 ffmpeg 目录下所有内容
+ffmpeg/*
+
+# 但允许 bin 目录
+!ffmpeg/bin/
+
+# 但只保留 ffprobe.exe
+ffmpeg/bin/*
+!ffmpeg/bin/ffprobe.exe

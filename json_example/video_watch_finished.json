@@ -1,0 +1,24 @@
+{
+    "resultData": {
+        "data": {
+            "code": "1",
+            "data": {
+                "adz342": 2746,
+                "sysTimestamp": 1773029185657,
+                "domain": {
+                    "aac001": 1097306909651341300,
+                    "adz343": 1773029185657,
+                    "adz342": 1773021956000,
+                    "adz165": 0,
+                    "adz341": 2746,
+                    "adz340": "7b99e4929e9d4c3e9c159c5804eccb3c",
+                    "adz290": "583a67c45d7b466bbd5087f81f0c7bd4"
+                }
+            },
+            "message": "成功"
+        }
+    },
+    "lists": {},
+    "success": true,
+    "message": "成 功"
+}

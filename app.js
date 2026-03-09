@@ -828,7 +828,7 @@ const getCourseList = (aac001, pageNum) => {
     adz280: "",
     aac001,
   };
-  param = encryptData(parameter);
+  let param = encryptData(parameter);
   return param;
 };
 
@@ -838,6 +838,59 @@ const selectCourse = (adz280, aac001) => {
     adz280,
     aac001,
   };
-  param = encryptData(parameter);
+  let param = encryptData(parameter);
   return param;
 };
+
+// 某课程下章节视频数据
+const getChapterList = (adz280, aac001) => {
+  let parameter = {
+    adz280,
+    aac001,
+  };
+  let param = encryptData(parameter);
+  return param;
+};
+
+// 获取视频结构
+const getVideoStructure = (adz127, adz290, aac001) => {
+  let parameter = {
+    adz127,
+    adz290,
+    aac001,
+  };
+  let param = encryptData(parameter);
+  return param;
+}
+
+// 获取章节视频信息
+const getVideoDetailData = (fileId, adz168) => {
+  let parameter = {
+    fileId: fileId ?? null,
+    adz168,
+  };
+  let param = encryptData(parameter);
+  return param;
+}
+
+// 秒刷课程
+const rushWatchCourse = (adz290, aac001, adz341) => {
+  let parameter = {
+    adz290,
+    aac001,
+    adz341,
+  };
+  let param = encryptData(parameter);
+  return param;
+}
+
+// 课程完结后告诉服务器刷完了
+const saveVideoPlayRecord = (adz290, aac001, adz341) => {
+  let parameter = {
+    adz290,
+    aac001,
+    adz341,
+  };
+  let param = encryptData(parameter);
+  return param;
+}
