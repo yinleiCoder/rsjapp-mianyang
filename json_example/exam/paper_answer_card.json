@@ -1,0 +1,371 @@
+{
+    "resultData": {
+        "data": {
+            "code": "1",
+            "data": {
+                "questionsMap": {
+                    "questionList_2": [
+                        {
+                            "xh": 21,
+                            "isRight": 0,
+                            "adz001": "2", // data-list="' + item.adz001
+                            "adz010": "53aaf63882ba435d846bb98f3c8780a5",// data-value="' + item.adz010
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 22,
+                            "isRight": 0,
+                            "adz001": "2",
+                            "adz010": "8cc106df8e454ed59cef49ed08be294b",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 23,
+                            "isRight": 0,
+                            "adz001": "2",
+                            "adz010": "e9223540dae947f493def44f2da62962",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 24,
+                            "isRight": 0,
+                            "adz001": "2",
+                            "adz010": "c58b8e91f6e74a0b8e8265af8e80535f",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 25,
+                            "isRight": 0,
+                            "adz001": "2",
+                            "adz010": "46340fc3d25849bca360189dcfd3ceb8",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 26,
+                            "isRight": 0,
+                            "adz001": "2",
+                            "adz010": "3a490e080e5a40378a846de1a9f73a3c",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 27,
+                            "isRight": 0,
+                            "adz001": "2",
+                            "adz010": "6c0db28cb0ea4270b1a12c0fc10870d6",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 28,
+                            "isRight": 0,
+                            "adz001": "2",
+                            "adz010": "9c3d7e1f5d44422d88e45ec10d4b3985",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 29,
+                            "isRight": 0,
+                            "adz001": "2",
+                            "adz010": "6a00405872c14261aae7b73741edd5d6",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 30,
+                            "isRight": 0,
+                            "adz001": "2",
+                            "adz010": "c97e2639168b43fa844264bf5bf935d8",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 31,
+                            "isRight": 0,
+                            "adz001": "2",
+                            "adz010": "6a4bc74af31245eba5003534e16602b2",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 32,
+                            "isRight": 0,
+                            "adz001": "2",
+                            "adz010": "73bfd0f2a2774e1a9dda3e71adebe2b8",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 33,
+                            "isRight": 0,
+                            "adz001": "2",
+                            "adz010": "8568227900e048c48cd53db2931287da",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 34,
+                            "isRight": 0,
+                            "adz001": "2",
+                            "adz010": "c46889fbd2f7429ba619b60020747d1d",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 35,
+                            "isRight": 0,
+                            "adz001": "2",
+                            "adz010": "f25997fd86554e629e86ee46c173d6e5",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 36,
+                            "isRight": 0,
+                            "adz001": "2",
+                            "adz010": "e4ad9ac639394ec29243a0d3e3595327",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 37,
+                            "isRight": 0,
+                            "adz001": "2",
+                            "adz010": "ae75ad12ea0c43f9ac6e8d95e97567f2",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 38,
+                            "isRight": 0,
+                            "adz001": "2",
+                            "adz010": "af55a18539f740ca89f4fb27473bb5c2",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 39,
+                            "isRight": 0,
+                            "adz001": "2",
+                            "adz010": "dd6008d8f32b440da0d9a413e77d4f02",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 40,
+                            "isRight": 0,
+                            "adz001": "2",
+                            "adz010": "5b2ec04571554e29a572215404cc2e66",
+                            "isanswer": "0"
+                        }
+                    ],
+                    "questionList_1": [
+                        {
+                            "xh": 1,
+                            "isRight": 0,
+                            "adz001": "1",
+                            "adz010": "218608e4efed4ca9a08767bbe95ca702",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 2,
+                            "isRight": 0,
+                            "adz001": "1",
+                            "adz010": "0193da8214b44b54803683018b7365c9",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 3,
+                            "isRight": 0,
+                            "adz001": "1",
+                            "adz010": "65a721bc69ee4d619a0cf925a41d6c5a",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 4,
+                            "isRight": 0,
+                            "adz001": "1",
+                            "adz010": "d528e218f46f485aaa485f7a74c06db0",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 5,
+                            "isRight": 0,
+                            "adz001": "1",
+                            "adz010": "53c2949de41044ad91d2689b4a0685bf",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 6,
+                            "isRight": 0,
+                            "adz001": "1",
+                            "adz010": "93276cda131e47e2a5e07756a93f6a29",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 7,
+                            "isRight": 0,
+                            "adz001": "1",
+                            "adz010": "7e527018d10946f9a5f71ac5abd27dee",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 8,
+                            "isRight": 0,
+                            "adz001": "1",
+                            "adz010": "43fbbec4ec634bcb927baccb6fa86bc5",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 9,
+                            "isRight": 0,
+                            "adz001": "1",
+                            "adz010": "47729f52ccb44e8887b6dacbe0882d2b",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 10,
+                            "isRight": 0,
+                            "adz001": "1",
+                            "adz010": "7f211444c8fd41b781a6fe0cdbf6bee0",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 11,
+                            "isRight": 0,
+                            "adz001": "1",
+                            "adz010": "f9d658edc5754774828fbd236e3ef5d1",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 12,
+                            "isRight": 0,
+                            "adz001": "1",
+                            "adz010": "156a9760f2be44ed81ea0b0db6d5e6a1",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 13,
+                            "isRight": 0,
+                            "adz001": "1",
+                            "adz010": "651d82582b974953a6870dff02336827",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 14,
+                            "isRight": 0,
+                            "adz001": "1",
+                            "adz010": "8452606d0eac4d198465d5114bd09d23",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 15,
+                            "isRight": 0,
+                            "adz001": "1",
+                            "adz010": "24572ed20f8c40d1b45056f0b551a1c8",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 16,
+                            "isRight": 0,
+                            "adz001": "1",
+                            "adz010": "fb361df19a49457986714daf138ae6a8",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 17,
+                            "isRight": 0,
+                            "adz001": "1",
+                            "adz010": "97b6f7851e2749bd954a086395903714",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 18,
+                            "isRight": 0,
+                            "adz001": "1",
+                            "adz010": "7ceb102da5d241d8bf1d3c11bf3f0cc8",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 19,
+                            "isRight": 0,
+                            "adz001": "1",
+                            "adz010": "4345500bba314957a9de97a26528ae73",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 20,
+                            "isRight": 0,
+                            "adz001": "1",
+                            "adz010": "64c8ad3241fb47218507ca8542700599",
+                            "isanswer": "0"
+                        }
+                    ],
+                    "questionList_3": [
+                        {
+                            "xh": 41,
+                            "isRight": 0,
+                            "adz001": "3",
+                            "adz010": "0526f994cc964df1aac1cb09eaf44680",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 42,
+                            "isRight": 0,
+                            "adz001": "3",
+                            "adz010": "5f24443a05cf43a9a17ee970035b2318",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 43,
+                            "isRight": 0,
+                            "adz001": "3",
+                            "adz010": "2cbc02923ac64da4b5b1634173a2eb95",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 44,
+                            "isRight": 0,
+                            "adz001": "3",
+                            "adz010": "3cc612cca6fb4357b311dd8f018c0e45",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 45,
+                            "isRight": 0,
+                            "adz001": "3",
+                            "adz010": "edc1f7a5dec04e7e9f85ced5388c10a8",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 46,
+                            "isRight": 0,
+                            "adz001": "3",
+                            "adz010": "71cc8ccd2987469db693db1dd1b89f2b",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 47,
+                            "isRight": 0,
+                            "adz001": "3",
+                            "adz010": "2e72551a7e894f1a83181fc71cdd82d5",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 48,
+                            "isRight": 0,
+                            "adz001": "3",
+                            "adz010": "9e666ad9ead24025a95a835792e77c74",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 49,
+                            "isRight": 0,
+                            "adz001": "3",
+                            "adz010": "8de2dc889932467cb75356b254195d2b",
+                            "isanswer": "0"
+                        },
+                        {
+                            "xh": 50,
+                            "isRight": 0,
+                            "adz001": "3",
+                            "adz010": "6ecf6c58861941179f9b70f0eb04a801",
+                            "isanswer": "0"
+                        }
+                    ]
+                }
+            },
+            "message": "成功"
+        }
+    },
+    "lists": {},
+    "success": true,
+    "message": "成功"
+}

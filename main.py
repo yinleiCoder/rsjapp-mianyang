@@ -32,7 +32,6 @@ class LogFrame(customtkinter.CTkFrame):
         self.textbox.tag_config("ERROR", foreground="#FF5555")
         self.textbox.tag_config("SUCCESS", foreground="#00FFFF")
         self.textbox.tag_config("WARNING", foreground="#FFFF55")
-        self.textbox.insert("end", ">>> 程序日志模块准备就绪\n\n")
 
     def write(self, text, level="INFO"):
         now = datetime.datetime.now().strftime("%H:%M:%S")
@@ -134,6 +133,7 @@ class MainFrame(customtkinter.CTkFrame):
         self.progressbar.grid(row=8, column=0, padx=0, pady=(0,0), sticky="ew")
         self.progressbar.set(0)
 
+    # 刷课
     def rush_course_callback(self):
         self.progressbar.set(0)
         courses = self.course_frame.get()
@@ -170,6 +170,7 @@ class MainFrame(customtkinter.CTkFrame):
         self.after(0, lambda: self.current_course_label.configure(text=f'{index+1}/{total} :《{course_name}》'))
     
     def show_course_infomation(self):
+        self.app.obtain_course_data()
         # 显示课程信息
         for course_name in self.course_frame.get():
             self.log_frame.write(self.app.display_course_chapter_data(course_name))
@@ -182,10 +183,26 @@ class MainFrame(customtkinter.CTkFrame):
             self.log_frame.write(message, level)
         self.after(200, self.process_log_queue)
     
+    # 考试
     def rush_exam_callback(self):
-        # 考试
-        print(self.course_frame.get())
+        self.progressbar.set(0)
+        courses = self.course_frame.get()
+        thread = threading.Thread(
+            target=self.rush_exam_thread,
+            args=(courses,),
+            daemon=True
+        )
+        thread.start()
 
+    # 子线程考试
+    def rush_exam_thread(self, selected_courses):
+        total = len(selected_courses)
+        for index, course_name in enumerate(selected_courses):
+            self.update_current_course(course_name, index, total)
+            self.after(0, lambda: self.progressbar.set(0))
+            self.log_queue.put((f'程序开始自动化考试：《{course_name}》', "WARNING"))
+            # 考试
+            self.app.obtain_exam_info(course_name, log_callback=self.log_callback, progress_callback=self.update_progress)
 
 # 控制面板-------------------------------------------------------------
 class App(customtkinter.CTk):

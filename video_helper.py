@@ -17,7 +17,7 @@ def obtain_video_duration_by_ffprobe(url):
     print("视频时长:", duration, "秒")
     return duration
 
-obtain_video_duration_by_ffprobe("https://rsjapp.mianyang.cn/jxjy/psp/resource/ZJSITE/CYYQPC/video/videoFile/2021CY001.mp4")
+# obtain_video_duration_by_ffprobe("https://rsjapp.mianyang.cn/jxjy/psp/resource/ZJSITE/CYYQPC/video/videoFile/2021CY001.mp4")
 
 # import requests
 # import struct

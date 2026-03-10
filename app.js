@@ -861,7 +861,7 @@ const getVideoStructure = (adz127, adz290, aac001) => {
   };
   let param = encryptData(parameter);
   return param;
-}
+};
 
 // 获取章节视频信息
 const getVideoDetailData = (fileId, adz168) => {
@@ -871,7 +871,7 @@ const getVideoDetailData = (fileId, adz168) => {
   };
   let param = encryptData(parameter);
   return param;
-}
+};
 
 // 秒刷课程
 const rushWatchCourse = (adz290, aac001, adz341) => {
@@ -882,7 +882,7 @@ const rushWatchCourse = (adz290, aac001, adz341) => {
   };
   let param = encryptData(parameter);
   return param;
-}
+};
 
 // 课程完结后告诉服务器刷完了
 const saveVideoPlayRecord = (adz290, aac001, adz341) => {
@@ -893,4 +893,110 @@ const saveVideoPlayRecord = (adz290, aac001, adz341) => {
   };
   let param = encryptData(parameter);
   return param;
-}
+};
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+// 获取试卷头信息
+const getExamTitle = (aac001, adz012, adz280) => {
+  let parameter = {
+    aac001,
+    adz012,
+    adz280,
+  };
+  let param = encryptData(parameter);
+  return param;
+};
+
+// 获取试卷答题卡
+const getExamAnswerCard = (aac001, adz012, adz280, adz420) => {
+  let parameter = {
+    aac001,
+    adz012,
+    adz280,
+    adz420,
+  };
+  let param = encryptData(parameter);
+  return param;
+};
+
+// 获取某道试题及选项
+const getExamSingleQuestionDetail = (
+  aac001,
+  adz012,
+  adz280,
+  adz420,
+  adz010,
+) => {
+  let parameter = {
+    aac001,
+    adz012,
+    adz280,
+    adz420,
+    adz010,
+  };
+  let param = encryptData(parameter);
+  return param;
+};
+
+// 提交某道题的答案
+const submitQuestionRightAnswer = (
+  aac001,
+  adz012,
+  adz280,
+  adz420,
+  adz010,
+  adz001,
+  adz430,
+  adz432,
+) => {
+  let parameter = {
+    aac001,
+    adz012,
+    adz280,
+    adz420,
+    adz010,
+    adz001,
+    adz430,
+    adz432,
+  };
+  let param = encryptData(parameter);
+  return param;
+};
+
+// 提交试卷（最后一道题目）
+const submitPaper = (
+  aac001,
+  adz012,
+  adz280,
+  adz420,
+  adz010,
+  adz001,
+  adz430,
+  adz432,
+) => {
+  let parameter = {
+    aac001,
+    adz012,
+    adz280,
+    adz420,
+    adz010,
+    adz001,
+    adz430,
+    adz432,
+  };
+  let param = encryptData(parameter);
+  return param;
+};
+
+// 查询考试成绩
+const queryPaperScore = (
+  adz420,
+  aac001,
+) => {
+  let parameter = {
+    adz420,
+    aac001,
+  };
+  let param = encryptData(parameter);
+  return param;
+};

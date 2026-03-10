@@ -4,6 +4,8 @@ import requests
 import traceback
 import execjs
 import ddddocr
+from datetime import datetime
+import time
 import video_helper
 
 class RsjApp:
@@ -11,6 +13,7 @@ class RsjApp:
         self.headers = {}
         self.cookies = {}
         self.all_courses = []
+        self.adz012 = 1# 0代表测试考试，1代表正式考试
     
     def verify_code(self) -> str:
         self.headers = {
@@ -202,9 +205,9 @@ class RsjApp:
         response = requests.post(url, headers=self.headers, cookies=self.cookies, data=data)
         decrypted_data = self.decrypt_data(response.text.strip('"'))
         if decrypted_data["resultData"]["data"]["code"] == "1" and decrypted_data["resultData"]["data"]["message"] == "成功":
-            return f"{course_name} 选课成功"
+            return f"{course_name} 选课成功！"
         else:
-            return f"{course_name} 选课失败"
+            return f"{course_name} 选课失败！"
     
     def obtain_chapter_list(self, course_id):
         self.headers = {
@@ -364,9 +367,233 @@ class RsjApp:
         else:
             return False
 
+    def obtain_exam_info(self, course_name='', log_callback=None,
+progress_callback=None):
+        current_course = self.find_course_by_name(course_name)
+        # 1. 查询卷面头部信息
+        self.headers = {
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "Accept-Language": "zh-CN,zh;q=0.9",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "Origin": "https://rsjapp.mianyang.cn",
+            "Pragma": "no-cache",
+            "Referer": f"https://rsjapp.mianyang.cn/jxjy/pc/ksz_1646185391000/index.jhtml?&adz012={self.adz012}&adz280={current_course["adz280"]}",
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+            "X-Requested-With": "XMLHttpRequest",
+            "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+        }
+        url = "https://rsjapp.mianyang.cn/jxjy/pc/lcService/getData/mye001.do"
+        jscode = open('app.js', 'r', encoding='utf-8').read()
+        payload = execjs.compile(jscode).call('getExamTitle', self.user_id, self.adz012, current_course["adz280"])
+        data = {
+            "aac001": payload["aac001"],
+            "adz012": payload["adz012"],
+            "adz280": payload["adz280"],
+            "encodeKey": payload["encodeKey"]
+        }
+        response = requests.post(url, headers=self.headers, cookies=self.cookies, data=data)
+        decrypted_data = self.decrypt_data(response.text.strip('"'))
+        if decrypted_data["resultData"]["data"]["code"] == "1":
+            decrypted_data = decrypted_data["resultData"]["data"]["data"]
+        else:
+            if log_callback is not None:
+                log_callback(f"程序获取考试试卷失败，请重试！！！", "ERROR")
+            return
+
+        paper_header_data = {
+            "adz401": decrypted_data["adz401"],# 试卷题目
+            "adz420": decrypted_data["adz420"],# 拿到人员考试信息
+            "cunt": decrypted_data["cunt"],# 题目数量
+            "endtime": decrypted_data["endtime"],# 结束时间
+            "starttime": decrypted_data["starttime"],# 开始时间
+            "adz614": decrypted_data["adz614"],# 考试时长
+            "adz614_remain": decrypted_data["adz614_remain"]# 剩余时间秒数
+        }
+        if log_callback is not None:
+            log_callback(f"考试试卷：{paper_header_data["adz401"]}", "INFO")
+            log_callback(f"考试题目数量：{paper_header_data["cunt"]}", "INFO")
+            log_callback(f"考试开始时间：{datetime.fromtimestamp(paper_header_data["starttime"] / 1000)}", "INFO")
+            log_callback(f"考试开始时间：{datetime.fromtimestamp(paper_header_data["endtime"] / 1000)}", "INFO")
+            log_callback(f"考试限定时长：{paper_header_data["adz614"]} 分钟", "INFO")
+
+        # 2. 查询答题卡
+        url = "https://rsjapp.mianyang.cn/jxjy/pc/lcService/getData/mye002.do"
+        payload = execjs.compile(jscode).call('getExamAnswerCard', self.user_id, self.adz012, current_course["adz280"], paper_header_data["adz420"])
+        data = {
+            "aac001": payload["aac001"],
+            "adz012": payload["adz012"],
+            "adz280": payload["adz280"],
+            "adz420": payload["adz420"],
+            "encodeKey": payload["encodeKey"]
+        }
+        response = requests.post(url, headers=self.headers, cookies=self.cookies, data=data)
+        decrypted_data = self.decrypt_data(response.text.strip('"'))
+        dataSource = []# 所有题目
+        if decrypted_data["resultData"]["data"]["code"] == "1":
+            questionsMap = decrypted_data["resultData"]["data"]["data"]["questionsMap"]
+            quesiton_list_1, quesiton_list_2, quesiton_list_3 = questionsMap["questionList_1"],questionsMap["questionList_2"],questionsMap["questionList_3"]
+            dataSource.extend(quesiton_list_1)
+            dataSource.extend(quesiton_list_2)
+            dataSource.extend(quesiton_list_3)
+            # '单选题','不定项选择题','判断题'
+            # print(dataSource)
+        else:
+            if log_callback is not None:
+                log_callback(f"程序获取答题卡失败，请重试！！！", "ERROR")
+            return
+        
+        total = len(dataSource)
+        last_question = {}# 最后一道题
+        for index, question in enumerate(dataSource):
+            # 3. 查询某道试题（需要轮询查询所有题目）
+            url = "https://rsjapp.mianyang.cn/jxjy/pc/lcService/getData/mye003.do"
+            payload = execjs.compile(jscode).call('getExamSingleQuestionDetail', self.user_id, self.adz012, current_course["adz280"], paper_header_data["adz420"], question["adz010"])
+            data = {
+                "aac001": payload["aac001"],
+                "adz012": payload["adz012"],
+                "adz280": payload["adz280"],
+                "adz420": payload["adz420"],
+                "adz010": payload["adz010"],
+                "encodeKey": payload["encodeKey"]
+            }
+            response = requests.post(url, headers=self.headers, cookies=self.cookies, data=data)
+            decrypted_data = self.decrypt_data(response.text.strip('"'))
+            # print(decrypted_data)
+            if decrypted_data["resultData"]["data"]["code"] == "1":
+                # 单道题目的信息
+                questionsMap = decrypted_data["resultData"]["data"]["data"]["questionMap"]
+                option, option_list = questionsMap["option"], questionsMap["optionList"]
+                option_type = option["adz001"]# 题目类型 "1" "3" "2"
+                adz430 = option["adz430"]
+                adz432 = option["adz006"]# adz432是用户提交的选项，如果不是多选就是A B C D，如果是多选。option["adz006"]为正确答案，# 正确答案："adz006": "C"， "adz006": "B,C,D,E" "adz006": "B"
+
+                if index+1 == total:# 最后一道题目的信息作为提交整个试卷
+                    last_question["adz001"] = option_type
+                    last_question["adz430"] = adz430
+                    last_question["adz432"] = adz432
+                    last_question["adz010"] = question["adz010"]
+
+
+                # 4. 提交本道题的答案
+                url = "https://rsjapp.mianyang.cn/jxjy/pc/lcService/getData/mye004.do"
+                payload = execjs.compile(jscode).call('submitQuestionRightAnswer', self.user_id, self.adz012, current_course["adz280"], paper_header_data["adz420"], question["adz010"], option_type, adz430, adz432)
+                data = {
+                    "aac001": payload["aac001"],
+                    "adz012": payload["adz012"],
+                    "adz280": payload["adz280"],
+                    "adz420": payload["adz420"],
+                    "adz010": payload["adz010"],
+                    "adz001": payload["adz001"],
+                    "adz430": payload["adz430"],
+                    "adz432": payload["adz432"],
+                    "encodeKey": payload["encodeKey"]
+                }
+                response = requests.post(url, headers=self.headers, cookies=self.cookies, data=data)
+                decrypted_data = self.decrypt_data(response.text.strip('"'))
+                # print(decrypted_data)
+                if decrypted_data["resultData"]["data"]["code"] == "1":
+                    # 本题目已作答
+                    if log_callback is not None:
+                        log_callback(f"({index+1}/{total})题目: {option["adz002"]} ", "INFO")
+                        log_callback(f"({index+1}/{total})正确答案: {option["adz006"]} ", "INFO")
+                        if progress_callback is not None:
+                            progress_callback((index + 1) / total)
+                else:
+                    if log_callback is not None:
+                        log_callback(f"{index+1}/{total})程序提交答案失败，请重试！！！", "ERROR")
+                    return
+            else:
+                if log_callback is not None:
+                    log_callback(f"{index+1}/{total})程序查询本道题目的正确答案失败，请重试！！！", "ERROR")
+                return
+            
+        # 5. 提交试卷（所有题目都提交完）[最后一个题目的答案]
+        # 正式考试必须要10分钟以上才能交卷
+        self.submit_paper(jscode, current_course["adz280"], paper_header_data["adz420"], last_question["adz010"], last_question["adz001"], last_question["adz430"], last_question["adz432"], paper_header_data["adz401"], paper_header_data["starttime"], log_callback)
+
+        # 6. 查询考试成绩
+        self.headers = {
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "Accept-Language": "zh-CN,zh;q=0.9",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "Origin": "https://rsjapp.mianyang.cn",
+            "Pragma": "no-cache",
+            "Referer": f"https://rsjapp.mianyang.cn/jxjy/pc/ksjg_1647414078000/index.jhtml?&adz420={paper_header_data["adz420"]}&adz012={self.adz012}&adz280={current_course["adz280"]}",
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+            "X-Requested-With": "XMLHttpRequest",
+            "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+        }
+        url = "https://rsjapp.mianyang.cn/jxjy/pc/lcService/getData/mye006.do"
+        payload = execjs.compile(jscode).call('queryPaperScore', paper_header_data["adz420"], self.user_id)
+        data = {
+            "adz420": payload["adz420"],
+            "aac001": payload["aac001"],
+            "encodeKey": payload["encodeKey"]
+        }
+        response = requests.post(url, headers=self.headers, cookies=self.cookies, data=data)
+        decrypted_data = self.decrypt_data(response.text.strip('"'))
+        if decrypted_data["resultData"]["data"]["code"] == "1":
+            if log_callback is not None:
+                log_callback(f"试卷《{paper_header_data["adz401"]}》考试成绩分数：{decrypted_data["resultData"]["data"]["data"]["adz424"]} 分", "SUCCESS")
+        else:
+            if log_callback is not None:
+                log_callback(f"试卷《{paper_header_data["adz401"]}》考试成绩获取失败，请重试！！！", "ERROR")
+            return
+    
+    def submit_paper(self, jscode, adz280, adz420, adz010, adz001, adz430, adz432, adz401, starttime,log_callback):
+        url = "https://rsjapp.mianyang.cn/jxjy/pc/lcService/getData/mye005.do"
+        payload = execjs.compile(jscode).call('submitPaper', self.user_id, self.adz012, adz280, adz420, adz010, adz001, adz430, adz432)
+        data = {
+            "aac001": payload["aac001"],
+            "adz012": payload["adz012"],
+            "adz280": payload["adz280"],
+            "adz420": payload["adz420"],
+            "adz010": payload["adz010"],
+            "adz001": payload["adz001"],
+            "adz430": payload["adz430"],
+            "adz432": payload["adz432"],
+            "encodeKey": payload["encodeKey"]
+        }
+        submit_time = int(starttime) + 10 * 60 * 1000# 提交试卷时间
+        while True:
+            now = int(time.time() * 1000)
+            if now >= submit_time:
+                break
+            remain = int((submit_time - now) / 1000)
+            if log_callback is not None:
+                log_callback(f"距离交卷还有 {remain} 秒", "WARNING")
+            time.sleep(min(remain, 10))
+        
+        response = requests.post(url, headers=self.headers, cookies=self.cookies, data=data)
+        decrypted_data = self.decrypt_data(response.text.strip('"'))
+        if decrypted_data["resultData"]["data"]["code"] == "1":
+            if log_callback is not None:
+                log_callback(f"试卷《{adz401}》提交成功", "SUCCESS")
+                return
+        else:
+            if log_callback is not None:
+                # 正式考试要10分钟后才能交卷
+                log_callback(f"试卷《{adz401}》提交失败：{decrypted_data["resultData"]["data"]["msg"]}", "ERROR")
+                return
+
 if __name__ == "__main__":
     app = RsjApp()
     app.login("510722199805052850", "Yl13795950539@")
     all_courses_data = app.obtain_course_data()
     # app.select_course('2011年：低碳经济与可持续发展')
-    print(app.rush_course_by_name('低碳经济与可持续发展'))
+    # print(app.rush_course_by_name('低碳经济与可持续发展'))
+    app.obtain_exam_info('2024年：数字经济与创新驱动发展等')

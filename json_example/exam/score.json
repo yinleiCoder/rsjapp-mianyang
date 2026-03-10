@@ -1,0 +1,22 @@
+{
+    "resultData": {
+        "data": {
+            "code": "1",
+            "data": {
+                "adz424": 100,// 考试成绩
+                "adz401": "2024年考试",
+                "adz420": "612deff1a08f4d5ca228f597630013d0",
+                "adz012": "0",
+                "cunt": 50,
+                "endtime": 1773106103000,
+                "starttime": 1773106050000,
+                "adz614": 90,
+                "adz613": 60
+            },
+            "message": "成功"
+        }
+    },
+    "lists": {},
+    "success": true,
+    "message": "成功"
+}

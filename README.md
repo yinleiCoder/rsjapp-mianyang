@@ -6,15 +6,20 @@
 
 ## 功能
 
-- 查课
-- 选课
-- 刷课
-- 考试
+- 官网：https://rsjapp.mianyang.cn/jxjy/pc/index.jhtml
+- 实时查课
+- 一键选课
+- 一键刷课
+- 自动化考试（查询考试成绩）
 
 ## 下载及使用方式
 
 
+### 本地构建
 
+- git clone 本仓库 / fork
+- uv run main.py 启动图形界面
+- uv run course.py 单独启动刷课（不带图形界面）
 
 ## 编程环境
 
@@ -22,6 +27,7 @@
 - chrome
 - python
 - uv
+- [爬虫工具库](https://spidertools.cn/#/curl2Request)
 
 ### 程序架构设计说明
 
@@ -41,8 +47,8 @@ queue
 
 ### bug
 
-- [execjs: AttributeError: 'NoneType' object has no attribute 'replace'](https://blog.csdn.net/c271696748/article/details/139020552?ops_request_misc=elastic_search_misc&request_id=c29470df41713781ac15ec0466359b1d&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~sobaiduend~default-1-139020552-null-null.142^v102^pc_search_result_base7&utm_term=execjs%20AttributeError%3A%20NoneType%20object%20has%20no%20attribute%20replace&spm=1018.2226.3001.4187)，请安装**PyExecjs2**解决此问题
+- [execjs: AttributeError: 'NoneType' object has no attribute 'replace'](https://blog.csdn.net/c271696748/article/details/139020552?ops_request_misc=elastic_search_misc&request_id=c29470df41713781ac15ec0466359b1d&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~sobaiduend~default-1-139020552-null-null.142^v102^pc_search_result_base7&utm_term=execjs%20AttributeError%3A%20NoneType%20object%20has%20no%20attribute%20replace&spm=1018.2226.3001.4187)，请安装**PyExecjs2**解决此问题（uv add PyExecjs2）
 
-## 鸣谢
+## 感谢
 
-如果您觉得有用，不妨请我喝杯咖啡？我将持续维护代码，保证软件可用。
+如果您觉得有用，不妨请我喝杯咖啡？我将持续维护代码，保证软件可用（仅作学习交流使用！！！）。

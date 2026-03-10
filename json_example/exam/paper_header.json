@@ -1,0 +1,20 @@
+{
+    "resultData": {
+        "data": {
+            "code": "1",
+            "data": {
+                "adz401": "2024年考试",// 试卷题目
+                "adz420": "15c9acdbf67445a4950e5e17f6efe724",// 拿到人员考试信息
+                "cunt": 50,// 题目数量
+                "endtime": 1773056131000,// 结束时间
+                "starttime": 1773050731000,// 开始时间
+                "adz614": 90,// 考试时长
+                "adz614_remain": 612735// 剩余时间秒数
+            },
+            "message": "成功"
+        }
+    },
+    "lists": {},
+    "success": true,
+    "message": "成功"
+}
