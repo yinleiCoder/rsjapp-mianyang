@@ -14,12 +14,7 @@
 
 ## 下载及使用方式
 
-
-### 本地构建
-
-- git clone 本仓库 / fork
-- uv run main.py 启动图形界面
-- uv run course.py 单独启动刷课（不带图形界面）
+前往仓库的Release页面进行下载，然后双击exe安装使用。
 
 ## 编程环境
 

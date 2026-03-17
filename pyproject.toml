@@ -10,5 +10,6 @@ dependencies = [
     "opencv-python>=4.13.0.92",
     "pillow>=12.1.1",
     "pyexecjs2>=1.6.1",
+    "pyinstaller>=6.19.0",
     "requests>=2.32.5",
 ]

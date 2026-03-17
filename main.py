@@ -27,13 +27,16 @@ class LogFrame(customtkinter.CTkFrame):
             text_color="#00FF00",
             fg_color="#000000"
         )
+        # self.textbox.configure(state="disabled")
         self.textbox.grid(row=0, column=0, sticky="nsew")
         self.textbox.tag_config("INFO", foreground="#00FF00")
         self.textbox.tag_config("ERROR", foreground="#FF5555")
         self.textbox.tag_config("SUCCESS", foreground="#00FFFF")
         self.textbox.tag_config("WARNING", foreground="#FFFF55")
+        
 
     def write(self, text, level="INFO"):
+        # self.textbox.delete("0.0", "end")
         now = datetime.datetime.now().strftime("%H:%M:%S")
         log = f"[{now}] {level:<7} {text}\n"
         self.textbox.insert("end", log, level)
@@ -70,6 +73,7 @@ class LoginFrame(customtkinter.CTkFrame):
             error_login_window.title('登录失败')
             error_login_window.display_content(message)
         else:
+            self.master.title(f"《绵阳市专业技术人员继续教育公需科目培训平台》- {self.app.user_info.get("aac003", self.app.user_info.get("aac002", "用户信息失败"))}")
             self.master.do_main()
 
 # 课程面板
@@ -170,11 +174,19 @@ class MainFrame(customtkinter.CTkFrame):
         self.after(0, lambda: self.current_course_label.configure(text=f'{index+1}/{total} :《{course_name}》'))
     
     def show_course_infomation(self):
+        courses = self.course_frame.get()
+        self.log_frame.write("正在查询课程信息，请稍等...", "WARNING")
+        thread = threading.Thread(
+            target=self.query_course_thread,
+            args=(courses,),
+            daemon=True
+        )
+        thread.start()
+    
+    def query_course_thread(self, selected_courses):
         self.app.obtain_course_data()
-        # 显示课程信息
-        for course_name in self.course_frame.get():
-            self.log_frame.write(self.app.display_course_chapter_data(course_name))
-            self.log_frame.write('\n')
+        for course_name in selected_courses:
+            self.log_callback(self.app.display_course_chapter_data(course_name))
 
     # 实时从消息队列中取日志
     def process_log_queue(self):

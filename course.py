@@ -14,6 +14,11 @@ class RsjApp:
         self.cookies = {}
         self.all_courses = []
         self.adz012 = 1# 0代表测试考试，1代表正式考试
+        login_jscode = open('course.js', 'r', encoding='utf-8').read()
+        self.login_ctx = execjs.compile(login_jscode)
+        course_jscode = open('app.js', 'r', encoding='utf-8').read()
+        self.course_ctx = execjs.compile(course_jscode)
+
     
     def verify_code(self) -> str:
         self.headers = {
@@ -92,8 +97,7 @@ class RsjApp:
             "sec-ch-ua-platform": "\"Windows\""
         }
         url = "https://rsjapp.mianyang.cn/jxjy/pc/lcUserCoreController/login.do"
-        jscode = open('course.js', 'r', encoding='utf-8').read()
-        payload = execjs.compile(jscode).call('encryptLoginPayload', account, password, code)
+        payload = self.login_ctx.call('encryptLoginPayload', account, password, code)
         data = {
             "pspUserAccount": payload["pspUserAccount"],
             "pspUserPwd": payload["pspUserPwd"],
@@ -104,7 +108,7 @@ class RsjApp:
         }
         response = requests.post(url, headers=self.headers, cookies=self.cookies, data=data)
         # 4. 解密响应数据
-        decrypted_data = execjs.compile(jscode).call('dealAes', response.text.strip('"'))
+        decrypted_data = self.login_ctx.call('dealAes', response.text.strip('"'))
         try:
             print(decrypted_data)
             data = decrypted_data['resultData']
@@ -116,7 +120,7 @@ class RsjApp:
             return decrypted_data["message"]
     
     def decrypt_data(self, encrypted_data) -> dict:
-        decrypted_data = execjs.compile(open('app.js', 'r', encoding='utf-8').read()).call('decryptData', encrypted_data)
+        decrypted_data = self.course_ctx.call('decryptData', encrypted_data)
         return decrypted_data
 
     def obtain_course_data(self):
@@ -148,8 +152,7 @@ class RsjApp:
             "sec-ch-ua-platform": "\"Windows\""
         }
         url = "https://rsjapp.mianyang.cn/jxjy/pc/lcService/getData/myd001.do"
-        jscode = open('app.js', 'r', encoding='utf-8').read()
-        payload = execjs.compile(jscode).call('getCourseList', self.user_id, page)
+        payload = self.course_ctx.call('getCourseList', self.user_id, page)
         data = {
             "pageNum": payload["pageNum"],
             "size": payload["size"],
@@ -195,8 +198,7 @@ class RsjApp:
             "sec-ch-ua-platform": "\"Windows\""
         }
         url = "https://rsjapp.mianyang.cn/jxjy/pc/lcService/getData/myd002.do"
-        jscode = open('app.js', 'r', encoding='utf-8').read()
-        payload = execjs.compile(jscode).call('selectCourse', current_course["adz280"], self.user_id)
+        payload = self.course_ctx.call('selectCourse', current_course["adz280"], self.user_id)
         data = {
             "adz280": payload["adz280"],
             "aac001": payload["aac001"],
@@ -229,8 +231,7 @@ class RsjApp:
             "sec-ch-ua-platform": "\"Windows\""
         }
         url = "https://rsjapp.mianyang.cn/jxjy/pc/lcService/getData/myd003.do"
-        jscode = open('app.js', 'r', encoding='utf-8').read()
-        payload = execjs.compile(jscode).call('getChapterList', course_id, self.user_id)
+        payload = self.course_ctx.call('getChapterList', course_id, self.user_id)
         data = {
             "adz280": payload["adz280"],
             "aac001": payload["aac001"],
@@ -307,8 +308,7 @@ class RsjApp:
             "sec-ch-ua-platform": "\"Windows\""
         }
         url = "https://rsjapp.mianyang.cn/jxjy/pc/lcService/getData/myd004.do"
-        jscode = open('app.js', 'r', encoding='utf-8').read()
-        payload = execjs.compile(jscode).call('getVideoStructure', video_data["adz127"], video_id,self.user_id)
+        payload = self.course_ctx.call('getVideoStructure', video_data["adz127"], video_id,self.user_id)
         data = {
             "adz127": payload["adz127"],
             "adz290": payload["adz290"],
@@ -321,7 +321,7 @@ class RsjApp:
 
         # 2. 获取mp4视频信息, 得到视频总时长
         url = "https://rsjapp.mianyang.cn/jxjy/pc/lcService/getVideoData.do"
-        payload = execjs.compile(jscode).call('getVideoDetailData', antiStealingLinkMap.get("adz166", ""), antiStealingLinkMap["adz168"])
+        payload = self.course_ctx.call('getVideoDetailData', antiStealingLinkMap.get("adz166", ""), antiStealingLinkMap["adz168"])
         data = {
             "fileId": payload["fileId"],
             "adz168": payload["adz168"],
@@ -339,7 +339,7 @@ class RsjApp:
 
         # 3. 秒刷视频
         url = 'https://rsjapp.mianyang.cn/jxjy/pc/lcService/getData/myd007.do'
-        payload = execjs.compile(jscode).call('rushWatchCourse', video_id, self.user_id, video_structure["duration"])
+        payload = self.course_ctx.call('rushWatchCourse', video_id, self.user_id, video_structure["duration"])
         data = {
             "adz290": payload["adz290"],
             "aac001": payload["aac001"],
@@ -352,7 +352,7 @@ class RsjApp:
         # 4. 保存播放记录
         if decrypted_data["resultData"]["data"]["code"] == "1":
             url = "https://rsjapp.mianyang.cn/jxjy/pc/lcService/getData/myd005.do"
-            payload = execjs.compile(jscode).call('saveVideoPlayRecord', video_id, self.user_id, video_structure["duration"])
+            payload = self.course_ctx.call('saveVideoPlayRecord', video_id, self.user_id, video_structure["duration"])
             data = {
                 "adz290": payload["adz290"],
                 "aac001": payload["aac001"],
@@ -390,8 +390,7 @@ progress_callback=None):
             "sec-ch-ua-platform": "\"Windows\""
         }
         url = "https://rsjapp.mianyang.cn/jxjy/pc/lcService/getData/mye001.do"
-        jscode = open('app.js', 'r', encoding='utf-8').read()
-        payload = execjs.compile(jscode).call('getExamTitle', self.user_id, self.adz012, current_course["adz280"])
+        payload = self.course_ctx.call('getExamTitle', self.user_id, self.adz012, current_course["adz280"])
         data = {
             "aac001": payload["aac001"],
             "adz012": payload["adz012"],
@@ -425,7 +424,7 @@ progress_callback=None):
 
         # 2. 查询答题卡
         url = "https://rsjapp.mianyang.cn/jxjy/pc/lcService/getData/mye002.do"
-        payload = execjs.compile(jscode).call('getExamAnswerCard', self.user_id, self.adz012, current_course["adz280"], paper_header_data["adz420"])
+        payload = self.course_ctx.call('getExamAnswerCard', self.user_id, self.adz012, current_course["adz280"], paper_header_data["adz420"])
         data = {
             "aac001": payload["aac001"],
             "adz012": payload["adz012"],
@@ -454,7 +453,7 @@ progress_callback=None):
         for index, question in enumerate(dataSource):
             # 3. 查询某道试题（需要轮询查询所有题目）
             url = "https://rsjapp.mianyang.cn/jxjy/pc/lcService/getData/mye003.do"
-            payload = execjs.compile(jscode).call('getExamSingleQuestionDetail', self.user_id, self.adz012, current_course["adz280"], paper_header_data["adz420"], question["adz010"])
+            payload = self.course_ctx.call('getExamSingleQuestionDetail', self.user_id, self.adz012, current_course["adz280"], paper_header_data["adz420"], question["adz010"])
             data = {
                 "aac001": payload["aac001"],
                 "adz012": payload["adz012"],
@@ -483,7 +482,7 @@ progress_callback=None):
 
                 # 4. 提交本道题的答案
                 url = "https://rsjapp.mianyang.cn/jxjy/pc/lcService/getData/mye004.do"
-                payload = execjs.compile(jscode).call('submitQuestionRightAnswer', self.user_id, self.adz012, current_course["adz280"], paper_header_data["adz420"], question["adz010"], option_type, adz430, adz432)
+                payload = self.course_ctx.call('submitQuestionRightAnswer', self.user_id, self.adz012, current_course["adz280"], paper_header_data["adz420"], question["adz010"], option_type, adz430, adz432)
                 data = {
                     "aac001": payload["aac001"],
                     "adz012": payload["adz012"],
@@ -516,7 +515,7 @@ progress_callback=None):
             
         # 5. 提交试卷（所有题目都提交完）[最后一个题目的答案]
         # 正式考试必须要10分钟以上才能交卷
-        self.submit_paper(jscode, current_course["adz280"], paper_header_data["adz420"], last_question["adz010"], last_question["adz001"], last_question["adz430"], last_question["adz432"], paper_header_data["adz401"], paper_header_data["starttime"], log_callback)
+        self.submit_paper(current_course["adz280"], paper_header_data["adz420"], last_question["adz010"], last_question["adz001"], last_question["adz430"], last_question["adz432"], paper_header_data["adz401"], paper_header_data["starttime"], log_callback)
 
         # 6. 查询考试成绩
         self.headers = {
@@ -538,7 +537,7 @@ progress_callback=None):
             "sec-ch-ua-platform": "\"Windows\""
         }
         url = "https://rsjapp.mianyang.cn/jxjy/pc/lcService/getData/mye006.do"
-        payload = execjs.compile(jscode).call('queryPaperScore', paper_header_data["adz420"], self.user_id)
+        payload = self.course_ctx.call('queryPaperScore', paper_header_data["adz420"], self.user_id)
         data = {
             "adz420": payload["adz420"],
             "aac001": payload["aac001"],
@@ -554,9 +553,12 @@ progress_callback=None):
                 log_callback(f"试卷《{paper_header_data["adz401"]}》考试成绩获取失败，请重试！！！", "ERROR")
             return
     
-    def submit_paper(self, jscode, adz280, adz420, adz010, adz001, adz430, adz432, adz401, starttime,log_callback):
+    def submit_paper(self, adz280, adz420, adz010, adz001, adz430, adz432, adz401, starttime, log_callback):
         url = "https://rsjapp.mianyang.cn/jxjy/pc/lcService/getData/mye005.do"
-        payload = execjs.compile(jscode).call('submitPaper', self.user_id, self.adz012, adz280, adz420, adz010, adz001, adz430, adz432)
+        payload = self.course_ctx.call(
+            'submitPaper',
+            self.user_id, self.adz012, adz280, adz420, adz010, adz001, adz430, adz432
+        )
         data = {
             "aac001": payload["aac001"],
             "adz012": payload["adz012"],
@@ -568,31 +570,72 @@ progress_callback=None):
             "adz432": payload["adz432"],
             "encodeKey": payload["encodeKey"]
         }
-        submit_time = int(starttime) + 10 * 60 * 1000# 提交试卷时间
+
+        # ✅ 封装提交（避免重复代码）
+        def do_submit():
+            response = requests.post(url, headers=self.headers, cookies=self.cookies, data=data)
+            return self.decrypt_data(response.text.strip('"'))
+
+        # =========================
+        # ✅ 第一次：立即提交
+        # =========================
+        if log_callback:
+            log_callback(f"尝试立即提交试卷《{adz401}》...", "INFO")
+
+        decrypted_data = do_submit()
+
+        if decrypted_data["resultData"]["data"]["code"] == "1":
+            if log_callback:
+                log_callback(f"试卷《{adz401}》提交成功（无需等待）", "SUCCESS")
+            return
+
+        # =========================
+        # ❌ 失败 → 等待10分钟
+        # =========================
+        if log_callback:
+            log_callback(
+                f"立即提交失败：{decrypted_data['resultData']['data'].get('msg', '未知原因')}，进入等待...",
+                "WARNING"
+            )
+
+        submit_time = int(starttime) + 10 * 60 * 1000
+        last_remain = None  # ✅ 防止重复日志
         while True:
             now = int(time.time() * 1000)
             if now >= submit_time:
                 break
-            remain = int((submit_time - now) / 1000)
-            if log_callback is not None:
-                log_callback(f"距离交卷还有 {remain} 秒", "WARNING")
-            time.sleep(min(remain, 10))
-        
-        response = requests.post(url, headers=self.headers, cookies=self.cookies, data=data)
-        decrypted_data = self.decrypt_data(response.text.strip('"'))
+
+            remain = math.ceil((submit_time - now) / 1000)
+
+            # ✅ 避免重复打印
+            if remain != last_remain:
+                if log_callback:
+                    log_callback(f"距离交卷还有 {remain} 秒", "WARNING")
+                last_remain = remain
+
+            time.sleep(min(max(remain, 1), 10))
+
+        # =========================
+        # ✅ 第二次提交
+        # =========================
+        if log_callback:
+            log_callback(f"开始最终提交试卷《{adz401}》...", "INFO")
+
+        decrypted_data = do_submit()
+
         if decrypted_data["resultData"]["data"]["code"] == "1":
-            if log_callback is not None:
+            if log_callback:
                 log_callback(f"试卷《{adz401}》提交成功", "SUCCESS")
-                return
         else:
-            if log_callback is not None:
-                # 正式考试要10分钟后才能交卷
-                log_callback(f"试卷《{adz401}》提交失败：{decrypted_data["resultData"]["data"]["msg"]}", "ERROR")
-                return
+            if log_callback:
+                log_callback(
+                    f"试卷《{adz401}》提交失败：{decrypted_data['resultData']['data'].get('msg', '未知错误')}",
+                    "ERROR"
+                )
 
 if __name__ == "__main__":
     app = RsjApp()
-    app.login("510722199805052850", "Yl13795950539@")
+    app.login("账号", "密码")
     all_courses_data = app.obtain_course_data()
     # app.select_course('2011年：低碳经济与可持续发展')
     # print(app.rush_course_by_name('低碳经济与可持续发展'))
