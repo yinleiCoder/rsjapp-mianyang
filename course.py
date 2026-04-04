@@ -6,6 +6,7 @@ import execjs
 import ddddocr
 from datetime import datetime
 import time
+import random
 import video_helper
 
 class RsjApp:
@@ -130,6 +131,7 @@ class RsjApp:
         for page in range(page_total):
             course_data = self.obtain_course_list(str(page + 1))
             self.all_courses.extend(course_data["list"])
+            time.sleep(random.uniform(0.5, 1.5))  # 模拟人类
         return self.all_courses
 
     def obtain_course_list(self, page="1") -> dict:
@@ -166,13 +168,44 @@ class RsjApp:
         }
         response = requests.post(url, headers=self.headers, cookies=self.cookies, data=data)
         decrypted_data = self.decrypt_data(response.text.strip('"'))
-        return decrypted_data["resultData"]["data"]["data"]
+        print(decrypted_data)
+        if decrypted_data["resultData"]["data"]["code"] == "1":
+            return decrypted_data["resultData"]["data"]["data"]
+        else:
+            return self.obtain_course_list(page)
 
     def find_course_by_name(self, course_name):
         for item in self.all_courses:
             if item.get('adz121') == course_name:
                 return item
         return None
+
+    def query_courses_by_names(self, course_names, log_callback=None):
+        target_set = set(course_names)
+        found_courses = []
+        page = 1
+        while target_set:
+            data = self.obtain_course_list(str(page))
+            course_list = data.get("list", [])
+            if not course_list:
+                break
+
+            for course in course_list:
+                name = course.get("adz121")
+                if name in target_set:
+                    found_courses.append(course)
+                    target_set.remove(name)
+                    if log_callback:
+                        log_callback(f"已获取课程：《{name}》信息", "INFO")
+            page += 1
+
+        # 同步更新缓存
+        for course in found_courses:
+            existing = self.find_course_by_name(course["adz121"])
+            if existing:
+                self.all_courses.remove(existing)
+            self.all_courses.append(course)
+        return found_courses
 
     def select_course(self, course_name='') -> str:
         current_course = self.find_course_by_name(course_name)

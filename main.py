@@ -8,8 +8,14 @@ from course import RsjApp
 class ToplevelWindow(customtkinter.CTkToplevel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.geometry("400*200")
-        
+        self.update_idletasks()
+        w = 400
+        h = 200
+        x = int((self.winfo_screenwidth() - w) / 2)
+        y = int((self.winfo_screenheight() - h) / 2)
+        self.geometry(f"{w}x{h}+{x}+{y}")
+
+
     def display_content(self, text):
         self.label = customtkinter.CTkLabel(self, text=text)
         self.label.pack(padx=20, pady=20)
@@ -47,6 +53,7 @@ class LoginFrame(customtkinter.CTkFrame):
     def __init__(self, master, app):
         super().__init__(master)
         self.app = app
+        self.is_loading = False
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
         self.configure(fg_color="transparent")
@@ -63,18 +70,52 @@ class LoginFrame(customtkinter.CTkFrame):
         self.login_button = customtkinter.CTkButton(self, text="登录", command=self.login)
         self.login_button.grid(row=3, column=0, padx=40, pady=20, sticky="ew")
 
+        self.account_entry.bind("<Return>", self.on_enter)
+        self.password_entry.bind("<Return>", self.on_enter)
+
+        self.account_entry.focus()
+
+    def on_enter(self, event):
+        if not self.is_loading:
+            self.login()
+
+    def set_loading(self, loading=True):
+        self.is_loading = loading
+        if loading:
+            self.login_button.configure(text="登录中...", state="disabled")
+        else:
+            self.login_button.configure(text="登录", state="normal")
+
     def login(self):
+        if self.is_loading:
+            return  # 防止重复点击
         account = self.account_entry.get()
         password = self.password_entry.get()
+        self.set_loading(True)
+        threading.Thread(
+            target=self.login_thread,
+            args=(account, password),
+            daemon=True
+        ).start()
+
+    def login_thread(self, account, password):
         message = self.app.login(account, password)
-        if message:
-            error_login_window = ToplevelWindow(self)
-            error_login_window.focus()
-            error_login_window.title('登录失败')
-            error_login_window.display_content(message)
-        else:
-            self.master.title(f"《绵阳市专业技术人员继续教育公需科目培训平台》- {self.app.user_info.get("aac003", self.app.user_info.get("aac002", "用户信息失败"))}")
-            self.master.do_main()
+
+        def finish():
+            self.set_loading(False)
+            if message:
+                error_login_window = ToplevelWindow(self)
+                error_login_window.focus()
+                error_login_window.title('登录失败')
+                error_login_window.display_content(message)
+            else:
+                self.master.title(
+                    f"《绵阳市专业技术人员继续教育公需科目培训平台》- "
+                    f"{self.app.user_info.get('aac003', self.app.user_info.get('aac002', '用户信息失败'))}"
+                )
+                self.master.do_main()
+
+        self.after(0, finish)
 
 # 课程面板
 class CourseFrame(customtkinter.CTkScrollableFrame):
@@ -113,8 +154,10 @@ class MainFrame(customtkinter.CTkFrame):
         self.grid_rowconfigure((0,6), weight=1)
         self.grid_rowconfigure((7, 8), weight=0)
 
-        self.course_frame = CourseFrame(self, title="全部课程", values=self.app.obtain_course_data())
-        self.course_frame.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
+        self.course_frame = None
+        self.loading_label = customtkinter.CTkLabel(self, text="课程加载中，请稍候...")
+        self.loading_label.grid(row=0, column=0, padx=10, pady=20)
+        threading.Thread(target=self.load_courses_thread, daemon=True).start()
 
         self.button = customtkinter.CTkButton(self, text="查看课程信息", command=self.show_course_infomation)
         self.button.grid(row=3, column=0, padx=10, pady=10, sticky="ew")
@@ -136,6 +179,22 @@ class MainFrame(customtkinter.CTkFrame):
         self.progressbar = customtkinter.CTkProgressBar(self, orientation="horizontal")
         self.progressbar.grid(row=8, column=0, padx=0, pady=(0,0), sticky="ew")
         self.progressbar.set(0)
+
+    def load_courses_thread(self):
+        try:
+            data = self.app.obtain_course_data()
+        except Exception as e:
+            data = []
+            self.log_queue.put((f"加载课程失败: {e}", "ERROR"))
+
+        def update_ui():
+            # 删除 loading
+            self.loading_label.destroy()
+            # 创建课程UI
+            self.course_frame = CourseFrame(self, title="全部课程", values=data)
+            self.course_frame.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
+
+        self.after(0, update_ui)
 
     # 刷课
     def rush_course_callback(self):
@@ -184,9 +243,15 @@ class MainFrame(customtkinter.CTkFrame):
         thread.start()
     
     def query_course_thread(self, selected_courses):
-        self.app.obtain_course_data()
-        for course_name in selected_courses:
-            self.log_callback(self.app.display_course_chapter_data(course_name))
+        self.log_callback("开始实时查询课程信息...", "WARNING")
+        courses = self.app.query_courses_by_names(
+            selected_courses,
+            log_callback=self.log_callback
+        )
+
+        for course in courses:
+            name = course.get("adz121")
+            self.log_callback(self.app.display_course_chapter_data(name))
 
     # 实时从消息队列中取日志
     def process_log_queue(self):
@@ -225,7 +290,12 @@ class App(customtkinter.CTk):
 
         self.app = RsjApp()
         self.title("《绵阳市专业技术人员继续教育公需科目培训平台》刷课")
-        self.geometry("600x500")
+        self.update_idletasks()
+        w = 600
+        h = 500
+        x = int((self.winfo_screenwidth() - w) / 2)
+        y = int((self.winfo_screenheight() - h) / 2)
+        self.geometry(f"{w}x{h}+{x}+{y}")
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
