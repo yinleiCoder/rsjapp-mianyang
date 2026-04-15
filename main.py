@@ -159,7 +159,7 @@ class MainFrame(customtkinter.CTkFrame):
         self.loading_label.grid(row=0, column=0, padx=10, pady=20)
         threading.Thread(target=self.load_courses_thread, daemon=True).start()
 
-        self.button = customtkinter.CTkButton(self, text="查看课程信息", command=self.show_course_infomation)
+        self.button = customtkinter.CTkButton(self, text="查看课程信息", command=self.show_course_information)
         self.button.grid(row=3, column=0, padx=10, pady=10, sticky="ew")
         self.button = customtkinter.CTkButton(self, text="选课、刷课", command=self.rush_course_callback)
         self.button.grid(row=4, column=0, padx=10, pady=10, sticky="ew")
@@ -232,7 +232,7 @@ class MainFrame(customtkinter.CTkFrame):
     def update_current_course(self, course_name, index, total):
         self.after(0, lambda: self.current_course_label.configure(text=f'{index+1}/{total} :《{course_name}》'))
     
-    def show_course_infomation(self):
+    def show_course_information(self):
         courses = self.course_frame.get()
         self.log_frame.write("正在查询课程信息，请稍等...", "WARNING")
         thread = threading.Thread(
@@ -243,6 +243,9 @@ class MainFrame(customtkinter.CTkFrame):
         thread.start()
     
     def query_course_thread(self, selected_courses):
+        for course_name in selected_courses:
+            self.log_queue.put((self.app.select_course(course_name), "INFO"))
+
         self.log_callback("开始实时查询课程信息...", "WARNING")
         courses = self.app.query_courses_by_names(
             selected_courses,

@@ -168,7 +168,7 @@ class RsjApp:
         }
         response = requests.post(url, headers=self.headers, cookies=self.cookies, data=data)
         decrypted_data = self.decrypt_data(response.text.strip('"'))
-        print(decrypted_data)
+        # print(decrypted_data)
         if decrypted_data["resultData"]["data"]["code"] == "1":
             return decrypted_data["resultData"]["data"]["data"]
         else:
@@ -272,6 +272,10 @@ class RsjApp:
         }
         response = requests.post(url, headers=self.headers, cookies=self.cookies, data=data)
         decrypted_data = self.decrypt_data(response.text.strip('"'))
+        # {'resultData': {'data': {'msg': '当前人员未选课,请求非法', 'code': '0'}}, 'lists': {}, 'success': True,
+        #  'message': '接口异常'}
+        # 必须先选课！才能查看课程信息
+        print(decrypted_data)
         return decrypted_data['resultData']['data']['data']
 
     def display_course_chapter_data(self, course_name='') -> str:
