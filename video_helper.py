@@ -1,8 +1,16 @@
 import os
+import sys
 import subprocess
 
+
+def _get_base_path():
+    if getattr(sys, 'frozen', False):
+        return sys._MEIPASS
+    return os.path.dirname(os.path.abspath(__file__))
+
+
 def obtain_video_duration_by_ffprobe(url):
-    ffprobe_path = os.path.join('ffmpeg', "bin", "ffprobe.exe")    
+    ffprobe_path = os.path.join(_get_base_path(), 'ffmpeg', 'bin', 'ffprobe.exe')
     cmd = [
         ffprobe_path,
         "-v", "error",
@@ -13,8 +21,6 @@ def obtain_video_duration_by_ffprobe(url):
 
     result = subprocess.run(cmd, capture_output=True, text=True)
     duration = float(result.stdout.strip())
-
-    print("视频时长:", duration, "秒")
     return duration
 
 # obtain_video_duration_by_ffprobe("https://rsjapp.mianyang.cn/jxjy/psp/resource/ZJSITE/CYYQPC/video/videoFile/2021CY001.mp4")

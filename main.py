@@ -33,7 +33,6 @@ class LogFrame(customtkinter.CTkFrame):
             text_color="#00FF00",
             fg_color="#000000"
         )
-        # self.textbox.configure(state="disabled")
         self.textbox.grid(row=0, column=0, sticky="nsew")
         self.textbox.tag_config("INFO", foreground="#00FF00")
         self.textbox.tag_config("ERROR", foreground="#FF5555")
@@ -42,7 +41,6 @@ class LogFrame(customtkinter.CTkFrame):
         
 
     def write(self, text, level="INFO"):
-        # self.textbox.delete("0.0", "end")
         now = datetime.datetime.now().strftime("%H:%M:%S")
         log = f"[{now}] {level:<7} {text}\n"
         self.textbox.insert("end", log, level)
@@ -88,9 +86,15 @@ class LoginFrame(customtkinter.CTkFrame):
 
     def login(self):
         if self.is_loading:
-            return  # 防止重复点击
+            return
         account = self.account_entry.get()
         password = self.password_entry.get()
+        if not account or not password:
+            error_login_window = ToplevelWindow(self)
+            error_login_window.focus()
+            error_login_window.title('登录失败')
+            error_login_window.display_content('请输入身份证号和密码')
+            return
         self.set_loading(True)
         threading.Thread(
             target=self.login_thread,
@@ -127,10 +131,7 @@ class CourseFrame(customtkinter.CTkScrollableFrame):
 
         for i, value in enumerate(self.values):
             checkbox = customtkinter.CTkCheckBox(self, text=value["adz121"])
-            if i % 2:
-                checkbox.grid(row=i, column=i%2, padx=10, pady=(10, 0), sticky="w")
-            else:
-                checkbox.grid(row=i+1, column=i%2, padx=10, pady=(10, 0), sticky="w")
+            checkbox.grid(row=i // 2, column=i % 2, padx=10, pady=(10, 0), sticky="w")
             self.checkboxes.append(checkbox)
 
     def get(self):
@@ -159,12 +160,12 @@ class MainFrame(customtkinter.CTkFrame):
         self.loading_label.grid(row=0, column=0, padx=10, pady=20)
         threading.Thread(target=self.load_courses_thread, daemon=True).start()
 
-        self.button = customtkinter.CTkButton(self, text="查看课程信息", command=self.show_course_information)
-        self.button.grid(row=3, column=0, padx=10, pady=10, sticky="ew")
-        self.button = customtkinter.CTkButton(self, text="选课、刷课", command=self.rush_course_callback)
-        self.button.grid(row=4, column=0, padx=10, pady=10, sticky="ew")
-        self.button = customtkinter.CTkButton(self, text="自动考试", command=self.rush_exam_callback)
-        self.button.grid(row=5, column=0, padx=10, pady=10, sticky="ew")
+        self.info_button = customtkinter.CTkButton(self, text="查看课程信息", command=self.show_course_information)
+        self.info_button.grid(row=3, column=0, padx=10, pady=10, sticky="ew")
+        self.rush_button = customtkinter.CTkButton(self, text="选课、刷课", command=self.rush_course_callback)
+        self.rush_button.grid(row=4, column=0, padx=10, pady=10, sticky="ew")
+        self.exam_button = customtkinter.CTkButton(self, text="自动考试", command=self.rush_exam_callback)
+        self.exam_button.grid(row=5, column=0, padx=10, pady=10, sticky="ew")
 
         self.log_frame = LogFrame(self)
         self.log_frame.grid(row=6, column=0, padx=10, pady=10, sticky="ew")
@@ -288,6 +289,12 @@ class MainFrame(customtkinter.CTkFrame):
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
+
+        def on_closing():
+            self.quit()
+            self.destroy()
+        self.protocol("WM_DELETE_WINDOW", on_closing)
+
         customtkinter.set_default_color_theme("dark-blue")
         customtkinter.set_appearance_mode("dark")
 
@@ -312,5 +319,23 @@ class App(customtkinter.CTk):
 
 
 if __name__ == "__main__":
+    import sys
+    import execjs
+    try:
+        execjs.get()
+    except Exception as e:
+        import tkinter as tk
+        from tkinter import messagebox
+        root = tk.Tk()
+        root.withdraw()
+        messagebox.showerror(
+            "环境错误",
+            f"未检测到JavaScript运行环境（Node.js）\n\n"
+            f"请安装Node.js后重试：\n"
+            f"https://nodejs.org\n\n"
+            f"错误详情: {e}"
+        )
+        sys.exit(1)
+
     app = App()
     app.mainloop()

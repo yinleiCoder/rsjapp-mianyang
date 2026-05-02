@@ -17,12 +17,28 @@
 
 前往仓库的Release页面进行下载，然后双击exe安装使用。
 
+**运行要求：** 目标机器需安装 [Node.js](https://nodejs.org)（程序使用 execjs 调用 Node.js 执行加密逻辑）。
+
+## 构建EXE
+
+```powershell
+# 安装依赖
+uv sync
+npm install
+
+# 构建
+uv run python build_exe.py
+```
+
+构建完成后输出在 `dist/rsjapp-mianyang/` 目录。
+
 ## 编程环境
 
 - vscode
 - chrome
 - python
 - uv
+- node.js
 - [爬虫工具库](https://spidertools.cn/#/curl2Request)
 
 ### 程序架构设计说明

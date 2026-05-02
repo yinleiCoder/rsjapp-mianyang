@@ -1,5 +1,6 @@
-import json
 import math
+import os
+import sys
 import requests
 import traceback
 import execjs
@@ -11,14 +12,21 @@ import video_helper
 
 class RsjApp:
     def __init__(self):
+        if getattr(sys, 'frozen', False):
+            self._base_path = sys._MEIPASS
+        else:
+            self._base_path = os.path.dirname(os.path.abspath(__file__))
+
         self.headers = {}
         self.cookies = {}
         self.all_courses = []
-        self.adz012 = 1# 0代表测试考试，1代表正式考试
-        login_jscode = open('course.js', 'r', encoding='utf-8').read()
-        self.login_ctx = execjs.compile(login_jscode)
-        course_jscode = open('app.js', 'r', encoding='utf-8').read()
-        self.course_ctx = execjs.compile(course_jscode)
+        self.adz012 = 1  # 0代表测试考试，1代表正式考试
+        with open(os.path.join(self._base_path, 'course.js'), 'r', encoding='utf-8') as f:
+            login_jscode = f.read()
+        self.login_ctx = execjs.compile(login_jscode, cwd=self._base_path)
+        with open(os.path.join(self._base_path, 'app.js'), 'r', encoding='utf-8') as f:
+            course_jscode = f.read()
+        self.course_ctx = execjs.compile(course_jscode, cwd=self._base_path)
 
     
     def verify_code(self) -> str:
@@ -38,17 +46,18 @@ class RsjApp:
             "sec-ch-ua-platform": "\"Windows\""
         }
         url = "https://rsjapp.mianyang.cn/jxjy/pc/code/getImgCode.do"
-        params = {
-            "sid": execjs.eval('Math.random()')
-        }
-        response = requests.get(url, headers=self.headers, cookies=self.cookies, params=params)
-        code = ''
-        with open('verifyCode.jpg', 'wb') as file:
-            file.write(response.content)
-            ocr = ddddocr.DdddOcr()
-            code = ocr.classification(response.content)
-        if len(code) != 4 and not code.isdigit():
-            return self.verify_code()
+
+        max_retries = 5
+        for _ in range(max_retries):
+            params = {"sid": execjs.eval('Math.random()')}
+            response = requests.get(url, headers=self.headers, cookies=self.cookies, params=params)
+            code = ''
+            with open('verifyCode.jpg', 'wb') as file:
+                file.write(response.content)
+                ocr = ddddocr.DdddOcr()
+                code = ocr.classification(response.content)
+            if len(code) == 4 and code.isdigit():
+                return code
         return code
 
     def login(self, account, password) -> str:
@@ -76,7 +85,6 @@ class RsjApp:
         
         # 2.验证码
         code = self.verify_code()
-        print(f'程序OCR验证码: {code}')
 
         # 3. 登录
         self.headers = {
@@ -111,7 +119,6 @@ class RsjApp:
         # 4. 解密响应数据
         decrypted_data = self.login_ctx.call('dealAes', response.text.strip('"'))
         try:
-            print(decrypted_data)
             data = decrypted_data['resultData']
             self.user_id = data["aac001"]
             self.user_info = data["userInfo"]
@@ -166,13 +173,13 @@ class RsjApp:
             "aac001": payload["aac001"],
             "encodeKey": payload["encodeKey"]
         }
-        response = requests.post(url, headers=self.headers, cookies=self.cookies, data=data)
-        decrypted_data = self.decrypt_data(response.text.strip('"'))
-        # print(decrypted_data)
-        if decrypted_data["resultData"]["data"]["code"] == "1":
-            return decrypted_data["resultData"]["data"]["data"]
-        else:
-            return self.obtain_course_list(page)
+        max_retries = 3
+        for _ in range(max_retries):
+            response = requests.post(url, headers=self.headers, cookies=self.cookies, data=data)
+            decrypted_data = self.decrypt_data(response.text.strip('"'))
+            if decrypted_data["resultData"]["data"]["code"] == "1":
+                return decrypted_data["resultData"]["data"]["data"]
+        return {"list": []}
 
     def find_course_by_name(self, course_name):
         for item in self.all_courses:
@@ -272,10 +279,6 @@ class RsjApp:
         }
         response = requests.post(url, headers=self.headers, cookies=self.cookies, data=data)
         decrypted_data = self.decrypt_data(response.text.strip('"'))
-        # {'resultData': {'data': {'msg': '当前人员未选课,请求非法', 'code': '0'}}, 'lists': {}, 'success': True,
-        #  'message': '接口异常'}
-        # 必须先选课！才能查看课程信息
-        print(decrypted_data)
         return decrypted_data['resultData']['data']['data']
 
     def display_course_chapter_data(self, course_name='') -> str:
@@ -398,11 +401,9 @@ class RsjApp:
             }
             response = requests.post(url, headers=self.headers, cookies=self.cookies, data=data)
             decrypted_data = self.decrypt_data(response.text.strip('"'))
-            # if decrypted_data["resultData"]["data"]["code"] == "1" and decrypted_data["resultData"]["data"]["data"]["complete"] == "1":
             if decrypted_data["resultData"]["data"]["code"] == "1":
                 return True
-        else:
-            return False
+        return False
 
     def obtain_exam_info(self, course_name='', log_callback=None,
 progress_callback=None):
@@ -474,12 +475,10 @@ progress_callback=None):
         dataSource = []# 所有题目
         if decrypted_data["resultData"]["data"]["code"] == "1":
             questionsMap = decrypted_data["resultData"]["data"]["data"]["questionsMap"]
-            quesiton_list_1, quesiton_list_2, quesiton_list_3 = questionsMap["questionList_1"],questionsMap["questionList_2"],questionsMap["questionList_3"]
-            dataSource.extend(quesiton_list_1)
-            dataSource.extend(quesiton_list_2)
-            dataSource.extend(quesiton_list_3)
-            # '单选题','不定项选择题','判断题'
-            # print(dataSource)
+            question_list_1, question_list_2, question_list_3 = questionsMap["questionList_1"], questionsMap["questionList_2"], questionsMap["questionList_3"]
+            dataSource.extend(question_list_1)
+            dataSource.extend(question_list_2)
+            dataSource.extend(question_list_3)
         else:
             if log_callback is not None:
                 log_callback(f"程序获取答题卡失败，请重试！！！", "ERROR")
@@ -501,9 +500,7 @@ progress_callback=None):
             }
             response = requests.post(url, headers=self.headers, cookies=self.cookies, data=data)
             decrypted_data = self.decrypt_data(response.text.strip('"'))
-            # print(decrypted_data)
             if decrypted_data["resultData"]["data"]["code"] == "1":
-                # 单道题目的信息
                 questionsMap = decrypted_data["resultData"]["data"]["data"]["questionMap"]
                 option, option_list = questionsMap["option"], questionsMap["optionList"]
                 option_type = option["adz001"]# 题目类型 "1" "3" "2"
@@ -533,7 +530,6 @@ progress_callback=None):
                 }
                 response = requests.post(url, headers=self.headers, cookies=self.cookies, data=data)
                 decrypted_data = self.decrypt_data(response.text.strip('"'))
-                # print(decrypted_data)
                 if decrypted_data["resultData"]["data"]["code"] == "1":
                     # 本题目已作答
                     if log_callback is not None:
@@ -671,9 +667,4 @@ progress_callback=None):
                 )
 
 if __name__ == "__main__":
-    app = RsjApp()
-    app.login("账号", "密码")
-    all_courses_data = app.obtain_course_data()
-    # app.select_course('2011年：低碳经济与可持续发展')
-    # print(app.rush_course_by_name('低碳经济与可持续发展'))
-    app.obtain_exam_info('2024年：数字经济与创新驱动发展等')
+    print("RsjApp module loaded. Use main.py to launch the GUI.")
